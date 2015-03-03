@@ -23,8 +23,11 @@ $xml = simplexml_load_string($responseXML);
 $count = 0;
 
 foreach($xml->monitor as $monitor) {
+
 	foreach ($monitor->responsetime as $responsetime) {
+
 		if (intval($responsetime['value']) != 0){
+			
 			mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
 			mysql_select_db($dbName) or die(mysql_error());
 
