@@ -31,6 +31,7 @@ while($r = mysql_fetch_array($result)){
 	$rows[] = $r;
 }
 
-print json_encode($rows);
+header('Content-Type: application/json');
+echo json_encode($rows);
 
 ?>
