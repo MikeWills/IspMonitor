@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISP Tester</title>
-</head>
-<body>
 <?php
-/*Note: You'll need the ID of the monitor. For that, simply go to "https://api.uptimerobot.com/getMonitors?apiKey=yourApiKey" and get the ID of the monitor to be queried.*/
-/*And, this code requires PHP 5+ or PHP 4 with SimpleXML enabled.*/
- 
-/*Variables - Start*/
-$apiKey     = ""; /*replace with your apiKey*/
-$monitorID  = 111111; /*replace with your monitorID*/
+/*Configuration - Start*/
+$apiKey     = ""; /* Replace with your apiKey */
+$monitorID  = 111111; /* Replace with your monitorID */
 $url    = "https://api.uptimerobot.com/getMonitors?apiKey=" . $apiKey . "&monitors=" . $monitorID . "&format=xml&responseTimes=1";
-/*Variables - End*/
+
+$dbServer = "localhost"; /* Enter your DB host */
+$dbName = ""; /* Enter your DB name */
+$dbUser = ""; /* Enter your DB username */
+$dbPassword = ""; /* Enter your DB password */
+$service = ""; /* This allows you to track multiple services. */
+/*Configuration - End*/
  
 /*Curl Request - Start*/
 $c = curl_init($url);
@@ -30,14 +24,26 @@ $count = 0;
 
 foreach($xml->monitor as $monitor) {
 	foreach ($monitor->responsetime as $responsetime) {
-		echo "Date:" . $responsetime['datetime'] . " | ";
-		echo "Response time: " . $responsetime['value'] . " ms<br><br>";
-		$count++;
+		if (intval($responsetime['value']) != 0){
+			mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
+			mysql_select_db($dbName) or die(mysql_error());
+
+			$result = mysql_query("SELECT DateTime FROM PingLog WHERE Service = '" . $serviceName . 
+				"' AND DateTime = '" . $responsetime['datetime'] . "'") or die(mysql_error());
+
+			if (mysql_num_rows($result) == 0){
+				$sql = "INSERT INTO PingLog (DateTime, PingTime, Service) VALUES('" . $responsetime['datetime'] . 
+					"', " . intval($responsetime['value']) . ", '" . $serviceName . "')";
+				mysql_query($sql) or die(mysql_error());	
+
+				echo "Date: " . $responsetime['datetime'] . " | ";
+				echo "Response time: " . $responsetime['value'] . " ms \n";
+				$count++;
+			}
+		}
 	}
 }
 
-echo "Record count: " . $count;
+echo "Record count: " . $count . "\n\n";
 /*XML Parsing - End*/
 ?>
-</body>
-</html>
