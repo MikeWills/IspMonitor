@@ -5,7 +5,7 @@ $fromDate = $_GET['fromDate'];
 $toDate = $_GET['toDate'];
 
 if (empty($fromDate)){
-	$fromDate = date("Y-m-d", strtotime("-1 week"));
+	$fromDate = date("Y-m-d", strtotime("-24 hours"));
 }
 
 if (empty($toDate)){
@@ -15,8 +15,8 @@ if (empty($toDate)){
 mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
 mysql_select_db($dbName) or die(mysql_error());
 
-$query = sprintf("SELECT * FROM PingLog WHERE Service = 'Enventis' AND DateTime >= '%s' and DateTime <= '%s'", 
-	mysql_real_escape_string($fromDate), mysql_real_escape_string($toDate));
+$query = sprintf("SELECT DateTime, PingTime, (SELECT AVG(PingTime) FROM PingLog WHERE Service = 'Enventis' AND DateTime >= '%s' and DateTime <= '%s') AS Average FROM PingLog WHERE Service = 'Enventis' AND DateTime >= '%s' and DateTime <= '%s' ORDER BY DateTime", 
+	mysql_real_escape_string($fromDate), mysql_real_escape_string($toDate), mysql_real_escape_string($fromDate), mysql_real_escape_string($toDate));
 
 $result = mysql_query($query);
 
