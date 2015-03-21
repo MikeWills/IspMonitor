@@ -1,22 +1,17 @@
 <?php
 require("../config.php");
 
-$fromDate = $_GET['fromDate'];
-$toDate = $_GET['toDate'];
+$fromDate = $_GET['date'];
 
-if (empty($fromDate)){
-	$fromDate = date("Y-m-d", strtotime("-24 hours"));
-}
-
-if (empty($toDate)){
-	$toDate = date("Y-m-d");
+if (empty($date)){
+	$date = date("Y-m-d");
 }
 
 mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
 mysql_select_db($dbName) or die(mysql_error());
 
-$query = sprintf("SELECT DateTime, PingTime, (SELECT AVG(PingTime) FROM PingLog WHERE Service = 'Enventis' AND DateTime >= '%s' and DateTime <= '%s') AS Average FROM PingLog WHERE Service = 'Enventis' AND DateTime >= '%s' and DateTime <= '%s' ORDER BY DateTime", 
-	mysql_real_escape_string($fromDate), mysql_real_escape_string($toDate), mysql_real_escape_string($fromDate), mysql_real_escape_string($toDate));
+$query = sprintf("SELECT DateTime, PingTime, (SELECT AVG(PingTime) FROM PingLog WHERE Service = 'Enventis' AND DATE(DateTime) = '%s') AS Average FROM PingLog WHERE Service = 'Enventis' AND DATE(DateTime) = '%s' ORDER BY DateTime", 
+	mysql_real_escape_string($date), mysql_real_escape_string($date));
 
 $result = mysql_query($query);
 
