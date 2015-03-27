@@ -1,11 +1,14 @@
 <?php
 require("../config.php");
 
-$fromDate = $_GET['date'];
+date_default_timezone_set($timezone);
+$date = date('Y-m-d');
 
-if (empty($date)){
-	$date = date("Y-m-d");
+if (!empty($_GET['date'])){
+	$date = $_GET['date'];
 }
+
+//echo $date;
 
 mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
 mysql_select_db($dbName) or die(mysql_error());
