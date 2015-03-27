@@ -9,6 +9,7 @@
     <!-- Bootstrap -->
     <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/css/bootstrap-theme.min.css" rel="stylesheet">
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
     <link href="/css/style.css" rel="stylesheet">
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -46,11 +47,17 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-3">
+                <div id="datepicker"></div>
+                <input type="hidden" id="dateSelected" />
+            </div>
+            <div class="col-md-9">
                 <h3>Ping Time Graph</h3>
                 <div id="curve_chart" style="width: 100%; height: 800px"></div>
             </div>
-            <div class="col-md-4">
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <h3>Ping Time Table</h3>
                 <div id="table_div" style="width: 100%"></div>
             </div>
@@ -62,6 +69,7 @@
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/knockout/3.3.0/knockout-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.0/js/bootstrap-datepicker.min.js"></script>
     <script type="text/javascript" src="//www.google.com/jsapi?autoload={
             'modules':[{
               'name':'visualization',
@@ -71,59 +79,75 @@
           }">
     </script>
     <script>
-    var dataHead = ["Time", "Ping", "Avg Ping"];
-    var data = [];
+    // Build the DateTable
+    var googleData = new google.visualization.DataTable();
+    googleData.addColumn('string', 'Time');
+    googleData.addColumn('number', 'Ping');
+    googleData.addColumn('number', 'Avg Ping');
+    var chart = null;
+    var table = null;
 
     // Get the picked date
     var selectedDate = window.location.hash.substr(1);
+    if (selectedDate != ''){
+        $('#datepicker').attr('data-date', selectedDate);
+    } else {
+        var today = new Date();
+        var stringToday = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+        $('#datepicker').attr('data-date', stringToday);
+    }
 
     // Get and process the data
-    $.get("/api/PingTimesChart.php", {
-        date: selectedDate
-    }, function(json) {
+    $.get("/api/PingTimesChart.php", { date: selectedDate }, drawViews, "json");
+
+    // Draws the chart using Google's Chart API
+    function drawViews(json) {
+        var data = [];
+
         for (var i in json) {
             var temp = [json[i].DateTime, parseFloat(json[i].PingTime), parseFloat(json[i].Average)];
             data.push(temp);
         }
-
-        drawChart();
-        drawTable();
-    }, "json");
-
-    // Draws the chart using Google's Chart API
-    function drawChart() {
-        var googleData = new google.visualization.DataTable();
-        googleData.addColumn('string', 'Time');
-        googleData.addColumn('number', 'Ping');
-        googleData.addColumn('number', 'Avg Ping');
+        googleData.removeRows(0, googleData.getNumberOfRows());
         googleData.addRows(data);
 
-        var options = {
+        // Build the chart
+        chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+        chart.draw(googleData, {
             curveType: "function",
             legend: {
                 position: "bottom"
             }
-        };
+        });
 
-        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
-
-        chart.draw(googleData, options);
-    };
-
-    // Creates a table list of all of the data using Google's Chart API
-    function drawTable() {
-        var googleData = new google.visualization.DataTable();
-        googleData.addColumn('string', 'Time');
-        googleData.addColumn('number', 'Ping');
-        googleData.addColumn('number', 'Avg Ping');
-        googleData.addRows(data);
-
+        // Build the table
         var table = new google.visualization.Table(document.getElementById('table_div'));
-
         table.draw(googleData, {
             showRowNumber: true
         });
     };
+
+    $(document).ready(function(){
+        $('#datepicker').datepicker({
+            startDate: '2015-03-02',
+            endDate: new Date(),
+            todayHighlight: true,
+            format: 'yyyy-mm-dd'
+        });
+
+        $("#datepicker").on("changeDate", function(event) {
+            location.hash = '#' + $("#datepicker").datepicker('getFormattedDate');
+        });
+
+        // Detect that the hash code has changed.
+        $(window).on('hashchange', function() {
+            // Get the picked date
+            selectedDate = window.location.hash.substr(1);
+
+            // Get and process the data
+            $.get("/api/PingTimesChart.php", { date: selectedDate }, drawViews, "json");
+        });
+    });
     </script>
 </body>
 
