@@ -41,19 +41,19 @@
     </nav>
     <div class="container">
         <div class="row">
-          <div class="col-md-12">
-            <h1>ISP Ping Monitor</h1>
-          </div>
+            <div class="col-md-12">
+                <h1>ISP Ping Monitor</h1>
+            </div>
         </div>
         <div class="row">
-          <div class="col-md-8">
-            <h3>Ping Time Graph</h3>
-            <div id="curve_chart" style="width: 100%; height: 800px"></div>
-          </div>
-          <div class="col-md-4">
-            <h3>Ping Time Table</h3>
-            <div id="table_div" style="width: 100%"></div>
-          </div>
+            <div class="col-md-8">
+                <h3>Ping Time Graph</h3>
+                <div id="curve_chart" style="width: 100%; height: 800px"></div>
+            </div>
+            <div class="col-md-4">
+                <h3>Ping Time Table</h3>
+                <div id="table_div" style="width: 100%"></div>
+            </div>
         </div>
     </div>
     <!-- /.container -->
@@ -73,17 +73,21 @@
     var dataHead = ["Time", "Ping", "Avg Ping"];
     var data = [];
 
-      $.get("/api/PingTimesChart.php", null, function(json){
+    var selectedDate = window.location.hash.substr(1);
+
+    $.get("/api/PingTimesChart.php", {
+        date: selectedDate
+    }, function(json) {
         for (var i in json) {
-          var temp = [json[i].DateTime, parseFloat(json[i].PingTime), parseFloat(json[i].Average)];
-          data.push(temp);
+            var temp = [json[i].DateTime, parseFloat(json[i].PingTime), parseFloat(json[i].Average)];
+            data.push(temp);
         }
 
         drawChart();
         drawTable();
-      }, "json");
+    }, "json");
 
-      function drawChart(){
+    function drawChart() {
         var googleData = new google.visualization.DataTable();
         googleData.addColumn('string', 'Time');
         googleData.addColumn('number', 'Ping');
@@ -91,16 +95,18 @@
         googleData.addRows(data);
 
         var options = {
-          curveType: "function",
-          legend: {position: "bottom"}
+            curveType: "function",
+            legend: {
+                position: "bottom"
+            }
         };
 
         var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
 
         chart.draw(googleData, options);
-      };
+    };
 
-      function drawTable() {
+    function drawTable() {
         var googleData = new google.visualization.DataTable();
         googleData.addColumn('string', 'Time');
         googleData.addColumn('number', 'Ping');
@@ -109,8 +115,10 @@
 
         var table = new google.visualization.Table(document.getElementById('table_div'));
 
-        table.draw(googleData, {showRowNumber: true});
-      };
+        table.draw(googleData, {
+            showRowNumber: true
+        });
+    };
     </script>
 </body>
 
