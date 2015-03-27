@@ -73,8 +73,10 @@
     var dataHead = ["Time", "Ping", "Avg Ping"];
     var data = [];
 
+    // Get the picked date
     var selectedDate = window.location.hash.substr(1);
 
+    // Get and process the data
     $.get("/api/PingTimesChart.php", {
         date: selectedDate
     }, function(json) {
@@ -87,6 +89,7 @@
         drawTable();
     }, "json");
 
+    // Draws the chart using Google's Chart API
     function drawChart() {
         var googleData = new google.visualization.DataTable();
         googleData.addColumn('string', 'Time');
@@ -106,6 +109,7 @@
         chart.draw(googleData, options);
     };
 
+    // Creates a table list of all of the data using Google's Chart API
     function drawTable() {
         var googleData = new google.visualization.DataTable();
         googleData.addColumn('string', 'Time');
