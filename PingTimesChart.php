@@ -1,12 +1,17 @@
 <?php
 require("../config.php");
 
-date_default_timezone_set($timezone);
+date_default_timezone_set("America/Chicago");
 $date = date('Y-m-d');
+echo $date;
+$date = date('Y-m-d',(strtotime ( '-1 day' , strtotime ( $date) ) ));
+echo $date;
 
 if (!empty($_GET['date'])){
 	$date = $_GET['date'];
 }
+
+//echo $date;
 
 mysql_connect($dbServer, $dbUser, $dbPassword) or die(mysql_error());
 mysql_select_db($dbName) or die(mysql_error());
@@ -23,7 +28,6 @@ if (!$result) {
 }
 
 $rows = array();
-
 while($r = mysql_fetch_array($result)){
 	$rows[] = $r;
 }
